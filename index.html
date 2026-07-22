@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Aria Lalwani</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Silkscreen:wght@400;700&family=Anton&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#000080;
+    --cream:#F5F5F4;
+    --yellow:#FFE676;
+    --pale:#FDFD95;
+    --gold:#F2B705;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--cream);
+    color:var(--navy);
+    font-family:'Instrument Sans', sans-serif;
+    overflow-x:hidden;
+    cursor:none;
+  }
+  ::selection{ background:var(--navy); color:var(--yellow); }
+
+  #cursor-dot{
+    position:fixed; top:0; left:0; width:14px; height:14px; border-radius:50%;
+    background:var(--navy); pointer-events:none; z-index:9999;
+    transform:translate(-50%,-50%); mix-blend-mode:difference;
+  }
+  .trail-dot{
+    position:fixed; top:0; left:0; width:6px; height:6px; border-radius:50%;
+    background:var(--yellow); pointer-events:none; z-index:9998;
+    transform:translate(-50%,-50%);
+  }
+  #cursor-label{
+    position:fixed; top:0; left:0; pointer-events:none; z-index:9999;
+    background:var(--yellow); color:var(--navy); font-weight:600;
+    font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    padding:6px 14px; border-radius:20px;
+    transform:translate(-50%,-50%) scale(0); opacity:0;
+    transition:transform .25s cubic-bezier(.2,1,.3,1), opacity .2s ease;
+  }
+  #cursor-label.active{ transform:translate(-50%,-50%) scale(1); opacity:1; }
+
+  section{ padding:8vw 8vw; position:relative; }
+
+  /* ---- nav ---- */
+  nav{
+    position:sticky; top:0; z-index:100;
+    display:flex; justify-content:center; gap:3rem;
+    padding:1.8rem 8vw; background:none;
+  }
+  nav a{
+    font-family:'Anton', sans-serif; font-weight:400; text-transform:uppercase;
+    letter-spacing:.03em; font-size:1.15rem; color:var(--gold);
+    text-decoration:none;
+  }
+  nav a:hover{ color:var(--navy); }
+
+  .hero{ min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  .eyebrow{
+    font-family:'Space Mono'; font-weight:700; letter-spacing:.15em; text-transform:uppercase;
+    font-size:12px; margin-bottom:2rem; color:var(--navy); opacity:.6;
+  }
+
+  /* ---- binary decode name ---- */
+  .name-wrap{
+    display:inline-flex; flex-direction:column; align-items:center;
+    align-self:flex-start;
+  }
+  h1.glitch{
+    font-family:'Silkscreen', monospace; font-weight:700;
+    font-size:clamp(2.6rem, 8.5vw, 6.5rem); line-height:1.15; letter-spacing:0;
+    position:relative; display:inline-block;
+  }
+  .scramble-char{ color:var(--yellow); }
+  .hero-desc{ margin-top:2rem; max-width:480px; font-size:1.05rem; line-height:1.7; color:var(--navy); opacity:.75; }
+  .quote-script{ font-family:'Pacifico', cursive; font-size:1.6rem; line-height:1.5; color:var(--navy); opacity:1; }
+  .quote-attrib{ display:block; margin-top:.4rem; font-family:'Space Mono'; font-size:.8rem; letter-spacing:.05em; text-transform:uppercase; color:var(--navy); opacity:.55; }
+
+  /* ---- floating images ---- */
+  .float-img{
+    position:absolute; border-radius:14px; overflow:hidden;
+    box-shadow:0 20px 40px rgba(0,0,128,.15);
+    animation:drift 7s ease-in-out infinite;
+  }
+  .float-img img{ display:block; width:100%; height:100%; object-fit:cover; }
+  .float-img.one{ width:180px; height:230px; top:8%; right:8%; animation-delay:0s; }
+  .float-img.two{ width:140px; height:140px; top:55%; right:22%; animation-delay:1.5s; }
+  @keyframes drift{
+    0%, 100%{ transform:translateY(0) rotate(-2deg); }
+    50%{ transform:translateY(-22px) rotate(2deg); }
+  }
+
+  /* ---- marquee ---- */
+  .marquee-wrap{ background:var(--navy); overflow:hidden; padding:1.8rem 0; }
+  .marquee-track{ display:flex; white-space:nowrap; width:max-content; }
+  .marquee-track span{
+    font-family:'Fraunces'; font-weight:700; font-style:italic; font-size:2rem; color:var(--pale);
+    margin:0 2.5rem; text-transform:uppercase;
+  }
+
+  .section-label{ font-family:'Space Mono'; font-weight:700; font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--navy); opacity:.6; margin-bottom:3rem; }
+
+  /* ---- experience ---- */
+  .exp-item{ margin-bottom:3.5rem; opacity:0; transform:translateY(40px); max-width:820px; }
+  .exp-header{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:.6rem 1.5rem; margin-bottom:1rem; }
+  .exp-role{ font-family:'Fraunces'; font-weight:700; font-size:1.5rem; }
+  .exp-company{ font-family:'Space Mono'; font-size:.85rem; opacity:.55; margin-top:.3rem; }
+  .exp-dates{ font-family:'Space Mono'; font-size:.8rem; opacity:.45; white-space:nowrap; }
+  .exp-desc{ font-size:1rem; line-height:1.75; opacity:.78; margin-bottom:1.2rem; }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:.6rem; }
+  .tag{
+    font-family:'Space Mono'; font-size:.72rem; padding:.35rem .8rem;
+    border:1.5px solid var(--navy); border-radius:20px; opacity:.75;
+  }
+
+  /* ---- skills / leadership (about) ---- */
+  .skill-group{ margin-bottom:2.4rem; max-width:820px; }
+  .skill-group h4{
+    font-family:'Space Mono'; font-size:.75rem; text-transform:uppercase;
+    letter-spacing:.1em; opacity:.5; margin-bottom:.9rem;
+  }
+  .impact-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1.4rem 2rem; }
+  .impact-item{ border-left:3px solid var(--gold); padding-left:1rem; font-size:.9rem; line-height:1.6; opacity:.78; }
+  .impact-item strong{ display:block; font-family:'Fraunces'; font-weight:700; font-size:1rem; opacity:1; margin-bottom:.25rem; }
+
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1.5rem; }
+  .card{
+    background:var(--cream); border:2px solid var(--navy); border-radius:16px; padding:2.2rem 1.8rem;
+    opacity:0; transform:translateY(50px);
+  }
+  .card h3{ font-family:'Fraunces'; font-weight:700; font-size:1.3rem; margin-bottom:.8rem; }
+  .card p{ font-size:.92rem; line-height:1.6; opacity:.7; }
+  .card .num{ font-family:'Space Mono'; font-weight:700; font-size:1.6rem; color:var(--navy); opacity:.35; margin-bottom:.8rem; }
+
+  .reveal-heading{ font-family:'Fraunces'; font-weight:600; font-size:clamp(1.8rem,4.5vw,3.2rem); line-height:1.25; max-width:820px; }
+  .reveal-heading .word{ opacity:.15; }
+  .reveal-heading .word.hl{ font-style:italic; color:var(--gold); }
+
+  .about-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:4.5rem; align-items:stretch; margin-top:2.8rem; }
+  .about-grid > div:first-child{ display:flex; flex-direction:column; height:100%; }
+  .quote-img{ width:min(100%, 380px); aspect-ratio:1/1; object-fit:cover; border-radius:14px; box-shadow:0 20px 40px rgba(0,0,128,.15); margin-top:2rem; display:block; }
+  .about-copy p{ font-size:1.02rem; line-height:1.75; color:var(--navy); opacity:.72; margin-bottom:1.25rem; }
+  .about-copy p:last-child{ margin-bottom:0; }
+  .about-tags{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:2.2rem; }
+  .about-tags span{
+    font-family:'Space Mono'; font-weight:700; font-size:.78rem; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--navy); border:2px solid var(--navy); border-radius:100px; padding:.5rem 1.1rem;
+  }
+  @media (max-width:900px){
+    .about-grid{ grid-template-columns:1fr; gap:2rem; }
+  }
+
+  footer{ text-align:center; padding:6vw 0; background:var(--navy); }
+  footer a{ color:var(--yellow); text-decoration:none; font-family:'Fraunces'; font-weight:700; font-style:italic; font-size:1.4rem; }
+  .footer-contacts{
+    display:flex; justify-content:center; flex-wrap:wrap; gap:1.6rem;
+    margin-top:1.8rem;
+  }
+  .footer-contacts a{
+    font-family:'Space Mono'; font-weight:400; font-style:normal; font-size:.85rem;
+    letter-spacing:.03em; color:var(--pale); opacity:.75;
+  }
+  .footer-contacts a:hover{ opacity:1; color:var(--yellow); }
+
+  @media (max-width:700px){
+    .cards{ grid-template-columns:1fr; }
+    .float-img{ display:none; }
+    body{ cursor:auto; }
+    #cursor-dot, #cursor-label, .trail-dot{ display:none; }
+    .exp-header{ flex-direction:column; }
+    .impact-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#home">Home</a>
+  <a href="#projects">Projects</a>
+  <a href="#experience">Experience</a>
+  <a href="#about">About</a>
+</nav>
+
+<div id="cursor-dot"></div>
+<div id="cursor-label"></div>
+
+<section class="hero" id="home">
+  <div class="float-img one"><img src="./landingimg1.jpeg" alt=""></div>
+  <div class="float-img two"><img src="./landingimg2.jpeg" alt=""></div>
+
+  <p class="eyebrow">Computer Engineering Student</p>
+  <div class="name-wrap">
+    <h1 class="glitch" id="glitchName1">Aria</h1>
+    <h1 class="glitch" id="glitchName2">Lalwani</h1>
+  </div>
+  <p class="hero-desc quote-script">"If you can dream it, you can do it."<span class="quote-attrib">- Walt Disney</span></p>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marquee">
+    <span>Research</span><span>Strategy</span><span>Design</span><span>Brand</span><span>Research</span><span>Strategy</span><span>Design</span><span>Brand</span>
+  </div>
+</div>
+
+<section id="projects">
+  <p class="section-label">Key Projects</p>
+  <div class="cards">
+    <div class="card" data-label="Read">
+      <div class="num">01</div>
+      <h3>Sentiment Analysis of Indian English &amp; Hinglish</h3>
+      <p>Research Project · 2025 Co-authored a paper on a slang-aware sentiment classification model for Indian English, Hinglish, and vernacular text - the messy comments and reviews most models choke on.</p>
+    </div>
+    <div class="card" data-label="Explore">
+      <div class="num">02</div>
+      <h3>AI Hackathon Concepts</h3>
+      <p>GDG &amp; Smart India Hackathon · 2025 - Designed an AI-powered financial news platform for affordable market insights, and a cloud-based Ayurvedic diet-planning system for dietitians.</p>
+    </div>
+  </div>
+</section>
+
+<section id="experience">
+  <p class="section-label">Experience</p>
+
+  <div class="exp-item">
+    <div class="exp-header">
+      <div>
+        <div class="exp-role">Software Development Intern</div>
+        <div class="exp-company">STULZ India (CHSPL)</div>
+      </div>
+      <div class="exp-dates">May '26 – Jul '26</div>
+    </div>
+    <p class="exp-desc">Built a full-stack Meeting Room Booking System, replacing chaotic phone- and WhatsApp-based booking across STULZ's Indian offices. Wired into internal SSO and HRMS for zero-touch onboarding, with a three-tier access system mapping 17 HRMS branch codes to automatic location- and role-based permissions. Shipped production-live across 3 locations, IT dependency: zero.</p>
+    <div class="tag-row">
+      <span class="tag">Angular 17</span><span class="tag">Node.js / Express</span><span class="tag">MySQL + Sequelize</span><span class="tag">AWS SES</span><span class="tag">Microsoft Graph API</span>
+    </div>
+  </div>
+
+  <div class="exp-item">
+    <div class="exp-header">
+      <div>
+        <div class="exp-role">Freelance Web Developer &amp; Social Media Consultant</div>
+        <div class="exp-company">Independent Client Engagements</div>
+      </div>
+      <div class="exp-dates">2024 – Present</div>
+    </div>
+    <p class="exp-desc">Designed and deployed 2 responsive client portfolio sites with a Supabase backend for data and contact management. Ran analytics-driven social strategy for small businesses - 60% increase in engagement, 50+ inbound client inquiries.</p>
+    <div class="tag-row">
+      <span class="tag">React</span><span class="tag">Node.js</span><span class="tag">Supabase</span><span class="tag">Social Strategy</span>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <p class="section-label">About</p>
+  <div class="about-grid">
+    <div>
+      <h2 class="reveal-heading" id="reveal1">In pursuit of wonder.</h2>
+      <img src="./quoteimg.jpg" alt="'Think Big, Start Small' typographic poster" class="quote-img">
+    </div>
+    <div>
+      <div class="about-copy">
+        <p>A Mumbai-based computer engineering student drawn to building thoughtful digital experiences that feel as intuitive as they are functional - full-stack applications, seamless interfaces, and the occasional AI experiment. I believe the best way to learn is to build.</p>
+        <p>Curiosity has shaped the way I learn: shipping real-world software during my internship, leading student initiatives, and exploring new ideas outside the classroom. I enjoy turning ambitious concepts into products that solve real problems.</p>
+        <p>Beyond engineering, you'll usually find me trekking, training for endurance events, or chasing the next challenge - staying curious, embracing discomfort, and never losing a sense of wonder.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:4rem;">
+    <div class="skill-group">
+      <h4>Programming</h4>
+      <div class="tag-row"><span class="tag">C++</span><span class="tag">Python</span><span class="tag">R</span><span class="tag">SQL</span></div>
+    </div>
+    <div class="skill-group">
+      <h4>Web Development</h4>
+      <div class="tag-row"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">React</span><span class="tag">Node.js</span><span class="tag">Supabase</span></div>
+    </div>
+    <div class="skill-group">
+      <h4>Tools &amp; AI</h4>
+      <div class="tag-row"><span class="tag">Git/GitHub</span><span class="tag">Figma</span><span class="tag">Canva</span><span class="tag">Claude AI</span><span class="tag">ChatGPT</span><span class="tag">Cursor</span><span class="tag">Gemini</span></div>
+    </div>
+    <div class="skill-group">
+      <h4>Certifications</h4>
+      <div class="tag-row"><span class="tag">Google AI Fundamentals</span><span class="tag">Anthropic Claude 101</span><span class="tag">NVIDIA - RAG</span></div>
+    </div>
+    <div class="skill-group">
+      <h4>Leadership &amp; Social Impact</h4>
+      <div class="impact-grid">
+        <div class="impact-item"><strong>Core Team, Social Conclave</strong>Led outreach driving 300+ registrations and managed on-ground crowd operations (2024)</div>
+        <div class="impact-item"><strong>Sports Captain, Lilavatibai Podar High School</strong>Led the school track team and competed at national-level athletics events (2023)</div>
+        <div class="impact-item"><strong>Volunteer Educator, Angel Xpress Foundation</strong>Taught Math and English to underprivileged students aged 6–12 (2024–25)</div>
+        <div class="impact-item"><strong>Fundraising Volunteer, Habitat for Humanity India</strong>Ran a crowdfunding campaign supporting food and hygiene kit distribution</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a href="mailto:lalwaniaria@gmail.com" data-label="Say hi">Get in touch →</a>
+  <div class="footer-contacts">
+    <a href="tel:+919820481260">+91 98204 81260</a>
+    <a href="mailto:lalwaniaria@gmail.com">lalwaniaria@gmail.com</a>
+    <a href="https://www.linkedin.com/in/aria-lalwani-b69b62266/" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a href="https://github.com/arialalwani" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* cursor: dot + trail + label */
+const dot = document.getElementById('cursor-dot');
+const label = document.getElementById('cursor-label');
+let mouseX=0, mouseY=0;
+const trailCount = 6;
+const trailDots = [];
+for(let i=0;i<trailCount;i++){
+  const d = document.createElement('div');
+  d.className='trail-dot';
+  d.style.opacity = 1 - (i/trailCount);
+  document.body.appendChild(d);
+  trailDots.push({el:d, x:0, y:0});
+}
+window.addEventListener('mousemove', e=>{
+  mouseX=e.clientX; mouseY=e.clientY;
+  dot.style.left=mouseX+'px'; dot.style.top=mouseY+'px';
+  label.style.left=mouseX+'px'; label.style.top=mouseY+'px';
+});
+function animateTrail(){
+  let px=mouseX, py=mouseY;
+  trailDots.forEach((t,i)=>{
+    t.x += (px - t.x)*0.35;
+    t.y += (py - t.y)*0.35;
+    t.el.style.left=t.x+'px'; t.el.style.top=t.y+'px';
+    px=t.x; py=t.y;
+  });
+  requestAnimationFrame(animateTrail);
+}
+animateTrail();
+document.querySelectorAll('[data-label]').forEach(el=>{
+  el.addEventListener('mouseenter', ()=>{
+    label.textContent = el.getAttribute('data-label');
+    label.classList.add('active');
+  });
+  el.addEventListener('mouseleave', ()=> label.classList.remove('active'));
+});
+
+/* binary decode scramble effect */
+class TextScramble{
+  constructor(el){
+    this.el = el;
+    this.chars = '01';
+    this.frame = 0;
+    this.frameRequest = null;
+    this.resolve = null;
+  }
+  setText(newText){
+    const oldText = this.el.textContent;
+    const length = Math.max(oldText.length, newText.length);
+    const promise = new Promise(resolve => this.resolve = resolve);
+    this.queue = [];
+    for(let i=0;i<length;i++){
+      const from = oldText[i] || '';
+      const to = newText[i] || '';
+      const start = Math.floor(Math.random()*30);
+      const end = start + Math.floor(Math.random()*30) + 15;
+      this.queue.push({from,to,start,end,char:''});
+    }
+    cancelAnimationFrame(this.frameRequest);
+    this.frame = 0;
+    this.update();
+    return promise;
+  }
+  update(){
+    let output = '';
+    let complete = 0;
+    for(let i=0;i<this.queue.length;i++){
+      let {from,to,start,end,char} = this.queue[i];
+      if(this.frame >= end){
+        complete++;
+        output += to;
+      } else if(this.frame >= start){
+        if(!char || Math.random() < 0.3){
+          char = to === ' ' ? ' ' : this.chars[Math.floor(Math.random()*this.chars.length)];
+          this.queue[i].char = char;
+        }
+        output += to === ' ' ? ' ' : `<span class="scramble-char">${char}</span>`;
+      } else {
+        output += from;
+      }
+    }
+    this.el.innerHTML = output;
+    if(complete === this.queue.length){
+      this.resolve();
+    } else {
+      this.frameRequest = requestAnimationFrame(()=>{ this.frame++; this.update(); });
+    }
+  }
+}
+
+const glitchEl1 = document.getElementById('glitchName1');
+const glitchEl2 = document.getElementById('glitchName2');
+const scrambler1 = new TextScramble(glitchEl1);
+const scrambler2 = new TextScramble(glitchEl2);
+
+glitchEl1.textContent = '0101'; // same length as "Aria"
+glitchEl2.textContent = '0101010'; // same length as "Lalwani"
+
+function runDecode(){
+  scrambler1.setText('Aria').then(()=> scrambler2.setText('Lalwani'));
+}
+setTimeout(runDecode, 800);
+
+/* ambient flicker: occasionally an "l" or "i" briefly reverts to a binary digit */
+function flickerOne(el, finalText){
+  const current = el.textContent;
+  const candidates = [];
+  for(let i=0;i<current.length;i++){
+    if('liI'.includes(current[i])) candidates.push(i);
+  }
+  if(candidates.length){
+    const idx = candidates[Math.floor(Math.random()*candidates.length)];
+    const chars = current.split('');
+    chars[idx] = Math.random() < 0.5 ? '0' : '1';
+    el.innerHTML = chars.map((c,i)=> i===idx ? `<span class="scramble-char">${c}</span>` : c).join('');
+    setTimeout(()=>{ el.textContent = finalText; }, 140);
+  }
+}
+function ambientFlicker(){
+  if(Math.random() < 0.5) flickerOne(glitchEl1, 'Aria');
+  else flickerOne(glitchEl2, 'Lalwani');
+  setTimeout(ambientFlicker, 2500 + Math.random()*2500);
+}
+setTimeout(ambientFlicker, 3000);
+
+glitchEl1.addEventListener('mouseenter', ()=> runDecode());
+glitchEl2.addEventListener('mouseenter', ()=> runDecode());
+
+/* card + experience item reveal on scroll */
+gsap.utils.toArray('.card').forEach((card, i)=>{
+  gsap.to(card, {
+    opacity:1, y:0, duration:0.8, ease:'power3.out', delay:i*0.1,
+    scrollTrigger:{ trigger:card, start:'top 85%' }
+  });
+});
+gsap.utils.toArray('.exp-item').forEach((item, i)=>{
+  gsap.to(item, {
+    opacity:1, y:0, duration:0.8, ease:'power3.out', delay:i*0.1,
+    scrollTrigger:{ trigger:item, start:'top 88%' }
+  });
+});
+
+/* floating images parallax on scroll */
+gsap.to('.float-img.one', { y:-80, ease:'none', scrollTrigger:{ trigger:'.hero', start:'top top', end:'bottom top', scrub:1 } });
+gsap.to('.float-img.two', { y:-40, ease:'none', scrollTrigger:{ trigger:'.hero', start:'top top', end:'bottom top', scrub:1 } });
+
+/* marquee scrubbed by scroll */
+const track = document.getElementById('marquee');
+gsap.to(track, { x:-350, scrollTrigger:{ trigger:track, start:'top bottom', end:'bottom top', scrub:1 } });
+
+/* word-by-word reveal */
+const heading = document.getElementById('reveal1');
+heading.innerHTML = heading.textContent.split(' ').map(w=>`<span class="word">${w}</span>`).join(' ');
+gsap.utils.toArray('.word').forEach(word=>{
+  gsap.to(word, { opacity:1, duration:0.4, scrollTrigger:{ trigger:heading, start:'top 80%', end:'bottom 60%', scrub:true } });
+});
+</script>
+
+</body>
+</html>
