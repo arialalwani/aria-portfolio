@@ -69,6 +69,12 @@
     text-decoration:none; padding:.3rem 0;
   }
   nav a:hover{ color:var(--ink); }
+  nav a.nav-resume{
+    font-family:'Space Mono'; font-weight:700; font-size:clamp(.65rem,2.2vw,.78rem);
+    letter-spacing:.05em; background:var(--gold); color:var(--navy);
+    border-radius:100px; padding:.55rem 1.3rem; transition:transform .2s ease;
+  }
+  nav a.nav-resume:hover{ color:var(--navy); transform:translateY(-2px); }
 
   .hero{ min-height:100vh; min-height:100svh; display:flex; flex-direction:column; justify-content:center; }
   .eyebrow{
@@ -180,6 +186,7 @@
   @media (max-width:700px){
     section{ padding:10vw 5vw; }
     nav{ padding:1.4rem 5vw; }
+    .hero{ min-height:auto; justify-content:flex-start; padding-top:6vw; }
     .cards{ grid-template-columns:1fr; }
     .hero-images{ display:flex; gap:.8rem; margin-bottom:1.8rem; }
     .float-img{ position:static; box-shadow:0 10px 24px rgba(0,0,128,.15); }
@@ -208,6 +215,7 @@
   <a href="#projects">Projects</a>
   <a href="#experience">Experience</a>
   <a href="#about">About</a>
+  <a href="./Aria_Lalwani_Resume.pdf" download="Aria_Lalwani_Resume.pdf" class="nav-resume" data-label="Download">Resume ↓</a>
 </nav>
 
 <div id="cursor-dot"></div>
